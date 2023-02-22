@@ -8,21 +8,6 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .models import *
 
-class TokenSerializer(TokenObtainPairSerializer):
-    @classmethod
-    def get_token(cls, user_id):
-        token = super().get_token(user_id)
-        # Ajoutez les informations utilisateur au jeton
-        token['id'] = user_id
-
-        return token
-
-    def validate(self, attrs):
-        data = super().validate(attrs)
-        # Ajoutez les informations utilisateur à la réponse de la vue
-        data['id'] = self.user.id
-
-        return data
 
 class EmailSerializer(serializers.ModelSerializer):
     class Meta:

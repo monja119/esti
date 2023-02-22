@@ -1,5 +1,5 @@
-from django.shortcuts import get_object_or_404
-
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import generics
@@ -12,6 +12,18 @@ from rest_framework.permissions import AllowAny
 from .serializers import *
 from .models import *
 
+
+class ObtainToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'email': user.name
+        })
 
 class LoginViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -32,7 +44,7 @@ class LoginViewSet(viewsets.ModelViewSet):
             user_password = Password.objects.get(user=user.id)
 
             if check_password(password, user_password):
-                token = TokenSerializer.get_token(user.id)
+                token = ObtainToken(user=user.id)
                 # success login
                 return Response(
                     {
@@ -54,6 +66,36 @@ class LoginViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+    def register(self, request):
+        # request data
+        user_name = request.data['name']
+        user_matricule = request.data['matricule']
+        user_email = request.data['email']
+        user_password = request.data['password']
+
+        user = User()
+        user.name = user_name
+        user.matricule = user_matricule
+        user.save()
+
+        email = Email()
+        email.email = user_email
+        email.user = user.id
+        email.save()
+
+        password = Password()
+        password.password = make_password(user_password, hasher="default")
+        password.user = user.id
+        password.save()
+
+        return Response(
+            {
+                'name': user.name,
+                'matricule': user_matricule,
+                'email': user_email,
+            }
+        )
 
     def get(self, request, pk):
         queryset = User.objects.get(id=pk)

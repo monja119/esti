@@ -21,6 +21,7 @@ ALLOWED_HOSTS = [
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_WHITELIST = (
     'http://localhost:3000',
+
 )
 
 # Application definition
@@ -69,7 +70,7 @@ REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.permissions.AllowAny'
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
